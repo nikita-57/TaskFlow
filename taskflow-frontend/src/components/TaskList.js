@@ -1,14 +1,24 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../axios';
+import AddTask from './AddTask';
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
+  // Проверяем авторизацию пользователя при загрузке страницы
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    const token = localStorage.getItem('access');
+    if (!token) {
+      navigate('/login'); // Перенаправляем на страницу входа, если токен отсутствует
+      return;
+    }
+    fetchTasks(); // Загружаем задачи
+  }, [navigate]);
 
+  // Функция для получения задач
   const fetchTasks = async () => {
     try {
       const token = localStorage.getItem('access');
@@ -17,17 +27,35 @@ const TaskList = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setTasks(response.data);
+      setTasks(response.data); // Обновляем список задач
     } catch (error) {
       setError('Failed to fetch tasks. Please try again.');
     }
   };
 
+  // Функция для добавления новой задачи
+  const handleTaskAdded = (newTask) => {
+    setTasks((prevTasks) => [...prevTasks, newTask]);
+  };
+
+  // Функция для выхода из системы
+  const handleLogout = () => {
+    localStorage.removeItem('access'); // Удаляем токен доступа
+    localStorage.removeItem('refresh'); // Удаляем refresh-токен
+    navigate('/login'); // Перенаправляем на страницу входа
+  };
+
   return (
     <div>
-      <h1>Task List</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Task List</h1>
+        <button onClick={handleLogout} style={{ padding: '8px 16px', backgroundColor: 'red', color: 'white', border: 'none', borderRadius: '4px' }}>
+          Logout
+        </button>
+      </div>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+      <AddTask onTaskAdded={handleTaskAdded} />
+      <table style={{ borderCollapse: 'collapse', width: '100%', marginTop: '20px' }}>
         <thead>
           <tr>
             <th style={{ border: '1px solid #ddd', padding: '8px' }}>Title</th>
@@ -44,7 +72,7 @@ const TaskList = () => {
                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{task.title}</td>
                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{task.description}</td>
                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{task.status}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>${task.price}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>₽{task.price}</td>
                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{new Date(task.due_date).toLocaleDateString()}</td>
               </tr>
             ))
