@@ -15,7 +15,7 @@ const Login = () => {
       });
       localStorage.setItem('access', response.data.access);
       localStorage.setItem('refresh', response.data.refresh);
-      window.location.href = '/';
+      window.location.href = '/'; // Перенаправление на главную страницу
     } catch (err) {
       setError('Invalid username or password');
     }
