@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  backend:
+    build:
+      context: ./task_manager
+    container_name: django-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./task_manager:/app
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=0.0.0.0
+      - SECRET_KEY=your_secret_key
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./taskflow-frontend
+    container_name: react-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./taskflow-frontend:/app
+
+  db:
+    image: postgres:14
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: taskflow_user
+      POSTGRES_PASSWORD: taskflow_password
+      POSTGRES_DB: taskflow_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
